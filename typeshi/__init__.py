@@ -9,14 +9,8 @@ typeshi - TypedDict generation utilities
 
 from .cls import *
 from .str_repr import *
+from .version import __version__, version_info
 
-from collections import namedtuple
-
-VersionInfo = namedtuple('VersionInfo', 'major minor micro releaselevel serial')
-
-version_info = VersionInfo(major=1, minor=0, micro=0, releaselevel='final', serial=0)
-
-__version__ = f'{version_info.major}.{version_info.minor}.{version_info.micro}'
 __title__ = 'typeshi'
 __license__ = 'MIT'
 __author__ = 'Paul Przybyszewski'

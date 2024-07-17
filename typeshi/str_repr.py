@@ -1,12 +1,14 @@
 # coding: utf-8
 
 import typing
+from typeshi.version import __version__
 from typeshi.util import is_builtin, remove_all_but_first, resolve_main_module
 from typeshi.cls import T
 
 __all__: tuple = ('declaration_module_from_typeddict',)
 __PEP8_INDENT__: str = '    '
 __MAIN_MODULE__: str = resolve_main_module()
+__TYPESHI_HEADER__: str = f'# typeshi ({__version__})'
 
 
 def _maybe_expand_type_args(t: T) -> str:
@@ -15,7 +17,8 @@ def _maybe_expand_type_args(t: T) -> str:
 
 
 def declaration_module_from_typeddict(typeddict: typing._TypedDictMeta, *,
-                                      newline: str = '\n', end_with_newline: bool = True) -> str:
+                                      newline: str = '\n', end_with_newline: bool = True,
+                                      typeshi_header: bool = True) -> str:
     """
     Get the class definitions of a TypedDict in the form of the content of a self-contained, ready-to-import module.
     This function resolves imports and handles class ordering, returning a ready-to-go, complete TypedDict declaration.
@@ -57,4 +60,5 @@ def declaration_module_from_typeddict(typeddict: typing._TypedDictMeta, *,
     for fik, fiv in from_imports.items():
         ret += f'from {fik} import ' + ', '.join(fiv) + '\n'
 
-    return ret + newline * 2 + f'{newline * 3}'.join(cls_definitions) + (newline if end_with_newline else '')
+    return ((__TYPESHI_HEADER__ + '\n\n' if typeshi_header else '') + ret + newline * 2 +
+            f'{newline * 3}'.join(cls_definitions) + (newline if end_with_newline else ''))

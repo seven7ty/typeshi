@@ -2,10 +2,9 @@
 
 import typing
 from frozendict import frozendict
-from typeshi.util import to_pascal_case, dict_full_path
+from typeshi.util import to_pascal_case, dict_full_path, T
 
 __all__: tuple = ('typeddict_from_dict', 'BUILTIN_TYPE_HOOKS')
-T = typing.TypeVar('T')
 
 
 def __generic_sequence_or_set_type_hook(t: type[T], v: T) -> type[T]:
@@ -28,13 +27,13 @@ BUILTIN_TYPE_HOOKS: frozendict[type, typing.Callable[[type[T], T], type[T]]] = f
     {list: _list_type_hook, tuple: _tuple_type_hook, set: _set_type_hook, frozenset: _set_type_hook})
 
 
-def _nested_td_name_base_hook(p: tuple[str, ...]) -> str:
+def _nested_td_name_base_hook(p: tuple[str, ...], _) -> str:
     return to_pascal_case('_'.join(p))
 
 
 def typeddict_from_dict(typeddict_name: str, original_dict: dict[str, ...], *, total: bool = True,
                         nested_typeddict_cls_name_hook: typing.Callable[
-                            [tuple[str, ...]], str] = _nested_td_name_base_hook,
+                            [tuple[str, ...], typing.Any], str] = _nested_td_name_base_hook,
                         type_hooks: dict[type, typing.Callable[[type[T], T], type[T]]] = BUILTIN_TYPE_HOOKS,
                         include_builtin_type_hooks: bool = True) -> typing._TypedDictMeta:
     """
@@ -46,6 +45,7 @@ def typeddict_from_dict(typeddict_name: str, original_dict: dict[str, ...], *, t
     :param total: whether total=total should be passed down to every generated TypedDict
     :param nested_typeddict_cls_name_hook: an optional function to generate the desired classnames for nested TypedDicts
         that accepts a tuple-based representation of the dictionary path of the given nested TypedDict
+        and the TypedDict itself for which the name is to be generated
     :param type_hooks: a dict of hooks (callbacks) that are called when a type can be enriched (sequence values, etc.)
         where a simple T can be transformed into T[A, B, C, ...]
     :param include_builtin_type_hooks: whether to include builtin type hooks (tuple, list, set, frozenset).
@@ -63,7 +63,8 @@ def typeddict_from_dict(typeddict_name: str, original_dict: dict[str, ...], *, t
         td_kv_pairs: dict[str, typing.Any] = {}
         for k, v in stage_dict.items():
             if isinstance(v, dict):
-                td_kv_pairs[k] = _nested_typeddict_from_dict(nested_typeddict_cls_name_hook(dict_full_path(original_dict, k, v)),v)
+                td_kv_pairs[k] = _nested_typeddict_from_dict(
+                    nested_typeddict_cls_name_hook(dict_full_path(original_dict, k, v), v), v)
             else:
                 v_type: typing.Any = type(v)
                 td_kv_pairs[k] = type_hooks[v_type](v_type, v) if v_type in type_hooks else v_type

@@ -1,7 +1,7 @@
 # coding: utf-8
 
 """
-typeshi - TypedDict generation utilities
+typeshi - Dict to TypedDict generation and conversion utilities
 ~~~~~~~~~~~~~~~~~~
 :copyright: (c) 2024 Paul Przybyszewski
 :license: MIT, see LICENSE for more details.

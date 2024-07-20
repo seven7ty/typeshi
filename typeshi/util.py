@@ -4,6 +4,19 @@ import os
 import sys
 import typing
 
+__all__: tuple = (
+    'to_pascal_case',
+    'get_all_dict_paths',
+    'get_nested_key',
+    'dict_full_path',
+    'is_builtin',
+    'remove_all_but_first',
+    'resolve_main_module',
+    'T'
+)
+
+T = typing.TypeVar('T')
+
 
 def to_pascal_case(str_: str) -> str:
     """
@@ -72,6 +85,7 @@ def dict_full_path(dict_: dict,
     :param value: The optional value for determining if a key is the right one
     :return: None if key not in dict_ or dict_[key] != value if value is not None else the full path to the key
     """
+
     def _recursive(__prev: tuple = ()) -> tuple[str, ...] | None:
         reduced: dict = get_nested_key(dict_, __prev)
         for k, v in reduced.items():

@@ -1,4 +1,4 @@
-# `typeshi` - a dead-simple TypedDict utility
+# `typeshi` - a dead-simple TypedDict utility [![Badge](https://img.shields.io/pypi/v/typeshi?color=3776AB&logo=python&style=for-the-badge)](https://pypi.org/project/typeshi/)  [![Badge 2](https://img.shields.io/pypi/dm/typeshi?color=3776AB&logo=python&style=for-the-badge)](https://pypi.org/project/typeshi/)
 Sometimes when working with Python typing we come across a situation when we need to quickly get a TypedDict object from an existing dict, and then maybe even make it into a self-contained declaration file -- `typeshi` does both of these things.
 
 ## Installation

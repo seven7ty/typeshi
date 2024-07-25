@@ -4,7 +4,6 @@ import os
 import json
 import typing
 import warnings
-from typeshi.util import ValueRange
 from typeshi.cls import typeddict_from_dict
 from typeshi.str_repr import declaration_module_from_typeddict
 
@@ -17,7 +16,7 @@ def save_declaration_module_from_json(toplevel_cls_name: str, json_path: str | b
                                       no_nonpy_declaration_path_warning: bool = False,
                                       inherit_cls: type | None = typing.TypedDict,
                                       typeshi_header: bool = True,
-                                      str_literals_break_at: typing.Annotated[int, ValueRange(79, 2_147_483_647)] | None = 119) -> None:
+                                      str_literals_break_at: int | None = 119) -> None:
     """
     Generate and save a declaration file based on the data contained in a JSON file
 

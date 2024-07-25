@@ -4,7 +4,7 @@ import typing
 import textwrap
 from types import NoneType
 from typeshi.version import __version__
-from typeshi.util import is_builtin, remove_all_but_first, resolve_main_module, T, ValueRange
+from typeshi.util import is_builtin, remove_all_but_first, resolve_main_module, T
 
 __all__: tuple = ('declaration_module_from_typeddict',)
 __PEP8_INDENT__: str = '    '
@@ -37,7 +37,7 @@ def get_type_module(t: T) -> str:
 def declaration_module_from_typeddict(typeddict: typing._TypedDictMeta, *,
                                       newline: str = '\n', end_with_newline: bool = True,
                                       typeshi_header: bool = True, inherit_cls: type | None = typing.TypedDict,
-                                      str_literals_break_at: typing.Annotated[int, ValueRange(79, 2_147_483_647)] | None = 119) -> str:
+                                      str_literals_break_at: int | None = 119) -> str:
     """
     Get the class definitions of a TypedDict in the form of the content of a self-contained, ready-to-import module.
     This function resolves imports and handles class ordering, returning a ready-to-go, complete TypedDict declaration.

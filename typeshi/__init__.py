@@ -9,6 +9,7 @@ typeshi - Dict to TypedDict generation and conversion utilities
 
 from .cls import *
 from .str_repr import *
+from .jsonf import *
 from .version import __version__, version_info
 
 __title__ = 'typeshi'

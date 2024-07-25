@@ -4,7 +4,7 @@ import typing
 from frozendict import frozendict
 from typeshi.util import to_pascal_case, dict_full_path, T
 
-__all__: tuple = ('typeddict_from_dict', 'BUILTIN_TYPE_HOOKS')
+__all__: tuple = ('typeddict_from_dict', 'BUILTIN_TYPE_SUBSCRIPT_HOOKS', 'LITERAL_CONVERSION_TYPE_HOOKS')
 
 
 def __generic_sequence_or_set_type_hook(t: type[T], v: T) -> type[T]:
@@ -23,8 +23,12 @@ def _tuple_type_hook(t: type[tuple], v: tuple) -> type[tuple]:
     return t[*(type(sv) for sv in v)]
 
 
-BUILTIN_TYPE_HOOKS: frozendict[type, typing.Callable[[type[T], T], type[T]]] = frozendict(
+BUILTIN_TYPE_SUBSCRIPT_HOOKS: frozendict[type, typing.Callable[[type[T], T], type[T]]] = frozendict(
     {list: _list_type_hook, tuple: _tuple_type_hook, set: _set_type_hook, frozenset: _set_type_hook})
+
+LITERAL_CONVERSION_TYPE_HOOKS: frozendict[type, typing.Callable[[type[T], T], type[T]]] = frozendict({
+    bool: lambda _, b: b,
+    **{t: lambda _, t: typing.Literal[t] for t in (str, int, bytes)}})
 
 
 def _nested_td_name_base_hook(p: tuple[str, ...], _) -> str:
@@ -34,7 +38,8 @@ def _nested_td_name_base_hook(p: tuple[str, ...], _) -> str:
 def typeddict_from_dict(typeddict_name: str, original_dict: dict[str, ...], *, total: bool = True,
                         nested_typeddict_cls_name_hook: typing.Callable[
                             [tuple[str, ...], typing.Any], str] = _nested_td_name_base_hook,
-                        type_hooks: dict[type, typing.Callable[[type[T], T], type[T]]] = BUILTIN_TYPE_HOOKS,
+                        type_hooks: dict[type, typing.Callable[[type[T], T], type[T]]] = BUILTIN_TYPE_SUBSCRIPT_HOOKS,
+                        literals_where_possible: bool = False,
                         include_builtin_type_hooks: bool = True) -> typing._TypedDictMeta:
     """
     Generate a TypedDict declaration blueprinted with the types present in the given dict,
@@ -47,17 +52,22 @@ def typeddict_from_dict(typeddict_name: str, original_dict: dict[str, ...], *, t
         that accepts a tuple-based representation of the dictionary path of the given nested TypedDict
         and the TypedDict itself for which the name is to be generated
     :param type_hooks: a dict of hooks (callbacks) that are called when a type can be enriched (sequence values, etc.)
-        where a simple T can be transformed into T[A, B, C, ...]
+        where a simple T can be transformed into T[A, B, C, ...] or anything else
+    :param literals_where_possible: a shorthand for passing LITERAL_CONVERSION_TYPE_HOOKS into type_hooks;
+        converts applicable types into their typing.Literal counterparts (<str "dog"> becomes Literal['dog'])
     :param include_builtin_type_hooks: whether to include builtin type hooks (tuple, list, set, frozenset).
-        Non-default impls of hooks for these types take precedence
+        Non-default (passed) implementations of hooks for these types take precedence
     :return: the TypedDict with type annotations that match the types present in original_dict
     """
-    if include_builtin_type_hooks and type_hooks != BUILTIN_TYPE_HOOKS:
-        for thk, thv in BUILTIN_TYPE_HOOKS.items():
+    if include_builtin_type_hooks and type_hooks != BUILTIN_TYPE_SUBSCRIPT_HOOKS:
+        for thk, thv in BUILTIN_TYPE_SUBSCRIPT_HOOKS.items():
             if thk not in type_hooks:
                 type_hooks[thk] = thv
-    elif not include_builtin_type_hooks and type_hooks == BUILTIN_TYPE_HOOKS:
-        type_hooks: frozendict = frozendict()
+    elif not include_builtin_type_hooks and type_hooks == BUILTIN_TYPE_SUBSCRIPT_HOOKS:
+        type_hooks: frozendict | dict = frozendict()
+
+    if literals_where_possible:
+        type_hooks = {**LITERAL_CONVERSION_TYPE_HOOKS, **type_hooks}  # non-default impls precedence preserved
 
     def _nested_typeddict_from_dict(td_cls_name: str, stage_dict: dict[str, ...]) -> type[typing.TypedDict]:
         td_kv_pairs: dict[str, typing.Any] = {}

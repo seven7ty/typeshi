@@ -3,6 +3,7 @@
 import os
 import sys
 import typing
+from dataclasses import dataclass
 
 __all__: tuple = (
     'to_pascal_case',
@@ -12,10 +13,17 @@ __all__: tuple = (
     'is_builtin',
     'remove_all_but_first',
     'resolve_main_module',
-    'T'
+    'T',
+    'ValueRange'
 )
 
 T = typing.TypeVar('T')
+
+
+@dataclass
+class ValueRange:
+    min: int
+    max: int
 
 
 def to_pascal_case(str_: str) -> str:

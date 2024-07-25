@@ -1,11 +1,4 @@
-<h1 align="center"><code>typeshi</code> - a dead-simple TypedDict utility</h1>
-<p align="center">
-    <a href="https://pypi.org/project/typeshi/"><img src="https://img.shields.io/pypi/v/typeshi?color=3776AB&logo=python&style=for-the-badge"/></a>
-    <a href="https://pypi.org/project/typeshi/"><img src="https://img.shields.io/pypi/dm/typeshi?color=3776AB&logo=python&style=for-the-badge"/></a>
-</p>
-
-
-_________________
+# typeshi - a dead-simple TypedDict utility</h1>
 Sometimes when working with Python typing we come across a situation when we need to quickly get a TypedDict object from an existing dict, and then maybe even make it into a self-contained declaration file -- `typeshi` does both of these things while exposing helpful function interfaces and utilities.
 You can get started right away by looking at the docstrings of the exposed functions listed below in your favorite code editor, or get a general feel for `typeshi` first with the examples that follow.
 

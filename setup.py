@@ -2,7 +2,7 @@
 import setuptools
 import re
 
-with open('README.md') as readme:
+with open('README_DIST.md') as readme:
     long_description = readme.read()
 
 with open('typeshi/version.py') as f:

@@ -89,6 +89,3 @@ from typeshi import save_declaration_module_from_json
 save_declaration_module_from_json(toplevel_cls_name='Locale', json_path='my_json.json',
                                   declaration_path='generated/locale_declaration.py')
 ```
-
-## Contributing
-`typeshi` is developed and maintained publicly [on GitHub.](https://github.com/seven7ty/typeshi)

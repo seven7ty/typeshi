@@ -11,6 +11,7 @@ You can get started right away by looking at the docstrings of the exposed funct
 
 ### Documented functions of `typeshi`
 - **`typeddict_from_dict`**
+- **`typeddict_from_records`**
 - **`declaration_module_from_typeddict`**
 - `save_declaration_module_from_json`
 
@@ -18,6 +19,41 @@ You can get started right away by looking at the docstrings of the exposed funct
 ```
 $ pip install typeshi
 ```
+
+## Infer a schema from multiple records
+
+`typeddict_from_records` accepts a nonempty iterable of dictionaries. It combines the observed fields into one record type.
+
+```python
+from typeshi import declaration_module_from_typeddict, typeddict_from_records
+
+rows = [{"id": 1, "label": "Draft"}, {"id": "external"}]
+record = typeddict_from_records("Record", rows)
+print(declaration_module_from_typeddict(record))
+```
+
+The generated `Record` has a required `id: int | str` and an optional `label: NotRequired[str]`. An explicit `None` adds a possible value type. Only an absent key makes a field optional by inference. Pass `total=False` to make every key optional.
+
+Nested objects merge by field. For example, `typeddict_from_dict("Page", {"rows": rows})` generates a `Page` with a `rows: list[RowsItem]` field. Empty lists use the element types observed in other samples at the same field, or `Any` if every list there is empty.
+
+## Generate and check a declaration
+
+```sh
+typeshi locale.json --name Locale -o schema.py
+typeshi locale.json --name Locale -o schema.py --check
+```
+
+For a JSON object, `--name` names the root schema. For a nonempty JSON array of objects, it names the type of one record. The CLI and `save_declaration_module_from_json` infer literal values for eligible scalar fields by default. Use `--no-literals` for general types such as `str` and `int`.
+
+Omit `-o` to print the declaration to standard output. You can also invoke the CLI with `python -m typeshi`.
+
+`--check` reads the output file without modifying it and treats LF and CRLF line endings as equivalent.
+
+| Exit code | Meaning |
+| --- | --- |
+| `0` | Generation succeeded, or the checked file is current. |
+| `1` | The checked file is missing or stale. |
+| `2` | The arguments, input, or file operation failed. |
 
 ## A quick example
 `typeshi` exposes two main functions, `typeddict_from_dict` and `declaration_module_from_typeddict`. `typeddict_from_dict` is used to get a TypedDict from a dict instance at runtime, whereas `declaration_module_from_typeddict` generates the contents of a declaration module from a TypedDict.
@@ -89,3 +125,14 @@ from typeshi import save_declaration_module_from_json
 save_declaration_module_from_json(toplevel_cls_name='Locale', json_path='my_json.json',
                                   declaration_path='generated/locale_declaration.py')
 ```
+
+## Running the tests
+
+Install the package in a virtual environment and run the standard-library test suite:
+
+```sh
+python -m pip install -e . mypy
+python -m unittest discover -s tests -v
+```
+
+CI runs the suite on Python 3.11 through 3.15. The tests import generated modules and compare their annotations, required keys, and optional keys with the source schema. The Python 3.14 job also runs mypy in strict mode against a generated module and code that imports it.

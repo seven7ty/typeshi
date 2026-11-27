@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 import setuptools
-import re
+from runpy import run_path
 
-with open('README_DIST.md') as readme:
+with open('README_DIST.md', encoding='utf-8') as readme:
     long_description = readme.read()
 
-with open('typeshi/version.py') as f:
-    version = '.'.join(re.search(r'^version_info\s*=\s*VersionInfo\(major=(\d),\s*minor=(\d),\s*micro=(\d)(?:,\s*releaselevel\s*=\s*\'\w+\',\s*serial\s*=\s*\d)*\)', f.read(), re.MULTILINE).groups())
-
-if not version:
-    raise RuntimeError('version is not set')
+version = run_path('typeshi/version.py')['__version__']
 
 
 setuptools.setup(
@@ -24,9 +20,9 @@ setuptools.setup(
     author_email='paul@przybyszew.ski',
     url='https://github.com/seven7ty/typeshi',
     packages=setuptools.find_packages(),
+    entry_points={'console_scripts': ['typeshi=typeshi.cli:main']},
     classifiers=[
-        'Programming Language :: Python :: 3',
-        'License :: OSI Approved :: MIT License'
+        'Programming Language :: Python :: 3'
     ],
     python_requires='>=3.11',
     install_requires=[

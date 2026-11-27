@@ -3,7 +3,7 @@
 import os
 import sys
 import typing
-from dataclasses import dataclass
+from collections.abc import Mapping
 
 __all__: tuple = (
     'to_pascal_case',
@@ -61,15 +61,18 @@ def get_nested_key(dict_: dict, key: typing.Iterable[str] | str, sep: str = ' ')
         key = key.split(sep=sep)
 
     for k in key:
-        if k.endswith(']'):  # list-like indexes
-            index_start = k.index('[')
-            index = int(k[index_start + 1:-1])
-            dict_ = dict_[index]
+        if isinstance(dict_, Mapping) and k in dict_:
+            dict_ = dict_[k]
+        elif k.endswith(']') and '[' in k:
+            name, indices = k.split('[', 1)
+            if name:
+                dict_ = dict_[name]
+            for index in indices[:-1].split(']['):
+                dict_ = dict_[int(index)]
+        elif isinstance(dict_, Mapping):
+            return None
         else:
-            try:
-                dict_ = dict_.get(k)
-            except AttributeError:
-                return dict_
+            return dict_
 
     return dict_
 
@@ -87,16 +90,18 @@ def dict_full_path(dict_: dict,
     :return: None if key not in dict_ or dict_[key] != value if value is not None else the full path to the key
     """
 
-    def _recursive(__prev: tuple = ()) -> tuple[str, ...] | None:
-        reduced: dict = get_nested_key(dict_, __prev)
-        for k, v in reduced.items():
-            if k == key and (value is None or (value is not None and v == value)):
-                return *__prev, key
+    def search(data, path):
+        for k, v in data.items():
+            current = (*path, k)
+            if k == key and (value is None or v == value):
+                return current
             if isinstance(v, dict):
-                if ret := _recursive((*__prev, k)):
-                    return ret
+                result = search(v, current)
+                if result is not None:
+                    return result
+        return None
 
-    return _recursive()
+    return search(dict_, ())
 
 
 def is_builtin(obj: object) -> bool:
@@ -117,16 +122,8 @@ def remove_all_but_first(list_: list[typing.Any], v: typing.Any) -> list[typing.
     :param v: the value of which only the first instance should be kept
     :return: the deduplicated list (although it is done inplace as well)
     """
-    first_i: int = list_.index(v)
-    to_remove: list[typing.Any] = []
-
-    for i, item in enumerate(list_):
-        if item == v and i != first_i:
-            to_remove.append(i)
-
-    for i in to_remove:
-        del list_[i]
-
+    first = list_.index(v)
+    list_[first + 1:] = [item for item in list_[first + 1:] if item != v]
     return list_
 
 

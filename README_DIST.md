@@ -1,9 +1,10 @@
-# typeshi - a dead-simple TypedDict utility</h1>
+# typeshi - a dead-simple TypedDict utility
 Sometimes when working with Python typing we come across a situation when we need to quickly get a TypedDict object from an existing dict, and then maybe even make it into a self-contained declaration file -- `typeshi` does both of these things while exposing helpful function interfaces and utilities.
 You can get started right away by looking at the docstrings of the exposed functions listed below in your favorite code editor, or get a general feel for `typeshi` first with the examples that follow.
 
 ### Documented functions of `typeshi`
 - **`typeddict_from_dict`**
+- **`typeddict_from_records`**
 - **`declaration_module_from_typeddict`**
 - `save_declaration_module_from_json`
 
@@ -11,6 +12,41 @@ You can get started right away by looking at the docstrings of the exposed funct
 ```
 $ pip install typeshi
 ```
+
+## Infer a schema from multiple records
+
+`typeddict_from_records` accepts a nonempty iterable of dictionaries. It combines the observed fields into one record type.
+
+```python
+from typeshi import declaration_module_from_typeddict, typeddict_from_records
+
+rows = [{"id": 1, "label": "Draft"}, {"id": "external"}]
+record = typeddict_from_records("Record", rows)
+print(declaration_module_from_typeddict(record))
+```
+
+The generated `Record` has a required `id: int | str` and an optional `label: NotRequired[str]`. An explicit `None` adds a possible value type. Only an absent key makes a field optional by inference. Pass `total=False` to make every key optional.
+
+Nested objects merge by field. For example, `typeddict_from_dict("Page", {"rows": rows})` generates a `Page` with a `rows: list[RowsItem]` field. Empty lists use the element types observed in other samples at the same field, or `Any` if every list there is empty.
+
+## Generate and check a declaration
+
+```sh
+typeshi locale.json --name Locale -o schema.py
+typeshi locale.json --name Locale -o schema.py --check
+```
+
+For a JSON object, `--name` names the root schema. For a nonempty JSON array of objects, it names the type of one record. The CLI and `save_declaration_module_from_json` infer literal values for eligible scalar fields by default. Use `--no-literals` for general types such as `str` and `int`.
+
+Omit `-o` to print the declaration to standard output. You can also invoke the CLI with `python -m typeshi`.
+
+`--check` reads the output file without modifying it and treats LF and CRLF line endings as equivalent.
+
+| Exit code | Meaning |
+| --- | --- |
+| `0` | Generation succeeded, or the checked file is current. |
+| `1` | The checked file is missing or stale. |
+| `2` | The arguments, input, or file operation failed. |
 
 ## A quick example
 `typeshi` exposes two main functions, `typeddict_from_dict` and `declaration_module_from_typeddict`. `typeddict_from_dict` is used to get a TypedDict from a dict instance at runtime, whereas `declaration_module_from_typeddict` generates the contents of a declaration module from a TypedDict.
